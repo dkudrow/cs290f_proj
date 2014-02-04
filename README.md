@@ -1,8 +1,5 @@
-# CS290F Project
+# CS290F Project - Daniel Kudrow & Erdinc Korpeoglu
 
-### Daniel Kudrow & Erdinc Korpeoglu
-
-## Applying natural langauge processing techniques to extract
-properties of web service privacy policies
+## Applying natural language processing techniques to extract specific properties from web service privacy policies
 
 
