@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import urllib
+import unidecode
 import sys
 import nltk
 import re
@@ -12,7 +13,15 @@ if len(sys.argv) == 2:
     urllist = sys.argv[1]
 
 def clean(html):
+    encoding = "utf-8"
+    getEncoding = re.search("charset=[\"']([^\"']*)", html)
+    if getEncoding:
+        encoding = getEncoding.group(1).lower()
+        print "    > found encoding: `%s`" % (encoding)
+    else:
+        print "    > using default encoding: `%s`" % (encoding)
     text = nltk.clean_html(html)
+    text = unidecode.unidecode(text.decode(encoding))
     text = re.sub("\\&#58;", ":", text)
     text = re.sub("\\&rsquo;", "'", text)
     text = re.sub("\\&lsquo;", "'", text)
@@ -28,6 +37,7 @@ urlfile = open(urllist, 'r')
 
 for line in urlfile:
     line = line.split()
+    print "Fetching `%s` from `%s`..." % (line[0], line[1])
     # ignore lines starting with '#'
     if (line[0] == '#'):
         continue
