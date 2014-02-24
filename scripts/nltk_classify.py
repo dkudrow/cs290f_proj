@@ -29,24 +29,24 @@ def getSentenceTagCollection(dir):
 #Get Features for a given sentence
 #Feature: [use, share] - counts
 def getFeatures(sentence):
-	features = [0, 0]
+	features = 0
 	tokens = word_tokenize(sentence)
 	for token in tokens:
 		if token == "use" or token == "using" or \
 		   token == "uses" or token == "used":
-			features[0] +=1
+			features +=3
 		elif token == "share" or token == "shares" or \
 		     token == "sharing" or token == "shared":
-			features[1] +=1
-	return features
+			features +=1
+	return {'keywords': features}
 			
 
 def main():
 	tagSentences = getSentenceTagCollection("corpus_2")
 	featureSet = [(getFeatures(sentence), tag) for (sentence, tag) in tagSentences]
 	trainSet, testSet = featureSet[60:], featureSet[:36]
-	print featureSet
-	classifier = nltk.NaiveBayesClassifier.train(trainSet)	
+	classifier = nltk.NaiveBayesClassifier.train(trainSet)
+	print nltk.classify.accuracy(classifier,testSet)	
 main()
 
 
