@@ -1,50 +1,67 @@
 import nltk
+import os
+from nltk import sent_tokenize
 
 #from WordMatchClassifier import getTagged, getFeatures
 #from PositionalClassifier import getTagged, getFeatures
 from FeatureExtractor import getTagged, getFeatures
 
-CORPDIR = "../corpus/"
-SUBDIR = "how_we_use_info/"
+corpusdir = "../corpus/what_info_we_collect"
 
 def main():
-    tagged = getTagged(CORPDIR + SUBDIR)
+    tagged = getTagged(corpusdir)
     featureSet = [(getFeatures(feature), tag) for (feature, tag) in tagged]
     trainSet = featureSet[:]
     testSet = featureSet[:100]
     classifier = nltk.NaiveBayesClassifier.train(trainSet)
-    #print nltk.classify.accuracy(classifier, testSet)
-    falseNeg = 0
-    falsePos = 0
-    trueNeg = 0
-    truePos = 0
-    for (sent, tag) in tagged:
-        guess = classifier.classify(getFeatures(sent))
-        if tag == guess:
-            if tag == "POS":
-                truePos += 1
-            else:
-                trueNeg += 1
+
+    fileList = os.listdir(corpusdir)
+    sentences = []
+    visited = []
+    for (stem, tag) in [(f[:-4], f[-3:]) for f in fileList]:
+        if stem in visited:
+            continue
         else:
-            if tag == "POS":
-                falsePos += 1
+            visited.append(stem)
+        print stem
+
+        f_pos, f_neg = open(corpusdir + "/" + stem + "_pos"), open(corpusdir + "/" + stem + "_neg")
+        f_neg = open(corpusdir + "/" + stem + "_neg")
+        raw_pos, raw_neg = f_pos.read(), f_neg.read()
+        sent_pos, sent_neg = sent_tokenize(raw_pos), sent_tokenize(raw_neg)
+        f_pos.close()
+        f_neg.close()
+
+        falseNeg = falsePos = trueNeg = truePos = 0
+        for sent in sent_pos:
+            guess = classifier.classify(getFeatures(sent))
+            if guess == "POS":
+                truePos +=1
             else:
                 falseNeg += 1
 
-    totTags = len(tagged)
-    posTags = 0
-    for (sent, tag)  in tagged:
-        if tag == "POS":
-            posTags += 1
+        for sent in sent_neg:
+            guess = classifier.classify(getFeatures(sent))
+            if guess == "NEG":
+                trueNeg +=1
+            else:
+                falsePos += 1
 
-    print "Total tags: %i" % totTags
-    print "Positive tags: %i" % posTags
-    print "Negative tags: %i" % (totTags - posTags)
-    print "False Negatives: %i " % falseNeg
-    print "False Positives: %i " % falsePos
-    print "True Negatives: %i " % trueNeg
-    print "True Positivies: %i " % truePos
-    print nltk.classify.accuracy(classifier, testSet)
-    classifier.show_most_informative_features(20)
+        posTags = len(sent_pos)
+        negTags = len(sent_neg)
+        totTags = posTags + negTags
+
+        #print "Total sentences: %i" % (totTag)
+        #print "Total negative: %.2f%%" % (float(negTags) / totTag * Tag100)
+        #print "Total positive: %.2f%%" % (float(posTags) / totTag * 100)
+        #print "True negatives: %.2f%%" % (float(trueNeg) / negTags * 100)
+        #print "True positives: %.2f%%" % (float(truePos) / posTags * 100)
+        print "False negatives: %.2f%%" % (float(falseNeg) / posTags * 100)
+        print "False positives: %.2f%%" % (float(falsePos) / negTags * 100)
+        print ""
+
+
+    print "Accuracy: %f" % nltk.classify.accuracy(classifier, testSet)
+    #classifier.show_most_informative_features(20)
 
 main()
